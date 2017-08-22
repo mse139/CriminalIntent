@@ -57,8 +57,10 @@ public class CrimeListFragment extends Fragment {
         private TextView mDateTextView;
         private Crime mCrime;       // for each time a new crime is displayed
 
-        public CrimeHolder(LayoutInflater inflater,ViewGroup parent) {
-            super(inflater.inflate(R.layout.list_item_crime,parent,false));
+        public CrimeHolder(View view) {
+            //  public CrimeHolder(LayoutInflater inflater,ViewGroup parent) {
+            super(view);
+            // super(inflater.inflate(R.layout.list_item_crime,parent,false));
 
             mTitleTextView  = (TextView) itemView.findViewById(R.id.crime_title);
             mDateTextView = (TextView) itemView.findViewById(R.id.crime_date);
@@ -92,10 +94,10 @@ public class CrimeListFragment extends Fragment {
 
         private Crime mCrime;       // for each time a new crime is displayed
 
-        public CrimeHolderPolice(LayoutInflater inflater, ViewGroup parent) {
-        //public CrimeHolderPolice(LayoutInflater inflater, ViewGroup parent) {
-
-            super(inflater.inflate(R.layout.list_item_crime_police, parent, false));
+        // public CrimeHolderPolice(LayoutInflater inflater, ViewGroup parent) {
+        public CrimeHolderPolice(View view) {
+            super(view);
+            // super(inflater.inflate(R.layout.list_item_crime_police, parent, false));
             itemView.setOnClickListener(this);
 
 
@@ -117,7 +119,7 @@ public class CrimeListFragment extends Fragment {
         }
     }
 
-    private class CrimeAdapter extends RecyclerView.Adapter<CrimeHolder> {
+    private class CrimeAdapter extends RecyclerView.Adapter<ViewHolder> {
         private List<Crime> mCrimes;
 
         public CrimeAdapter(List<Crime> crimes) {
@@ -144,22 +146,42 @@ public class CrimeListFragment extends Fragment {
         }
 
         @Override
-        public CrimeHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             Log.d("onCreateViewHolder",Integer.toString(viewType));
+            View view;
+            LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+
+            if(viewType == ITEM_CRIME_POLICE) {
+
+                view = inflater.inflate(R.layout.list_item_crime_police, parent, false);
+                return new CrimeHolderPolice(view);
+            } else
+            if (viewType == ITEM_CRIME) {
+
+                view = inflater.inflate(R.layout.list_item_crime, parent, false);
+                return new CrimeHolder(view);
+            }
+
+            return null;// takes care of return error
 
 
-
-           LayoutInflater layoutInflater = LayoutInflater.from(getActivity());
-            return new CrimeHolder(layoutInflater,parent);
         }
 
         @Override
-        public void onBindViewHolder(CrimeHolder holder, int position) {
+        public void onBindViewHolder(ViewHolder holder, int position) {
 
+            final int itemType = getItemViewType(position); // UI type
             // bind the newest record
             Crime crime=  mCrimes.get(position);// get the record
-            holder.bind(crime);     // bind it
+            if(itemType == ITEM_CRIME) {
+                ((CrimeHolder)holder).bind(crime);
+            } else if (itemType == ITEM_CRIME_POLICE)
+                ((CrimeHolderPolice)holder).bind(crime);
+
+
         }
+
+
 
         @Override
         public int getItemCount() {
