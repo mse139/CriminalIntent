@@ -1,5 +1,7 @@
 package com.bignerdranch.android.criminalintent;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
@@ -27,14 +29,15 @@ public class CrimeListFragment extends Fragment {
     private final int ITEM_CRIME_POLICE = 0;
     private final int ITEM_CRIME =1;
     private final String TAG = "CrimeListFragment";
+    private static final int REQUEST_CRIME = 1;
+    private int lastClickedRow = -1;
 
     @Override
+    //create and inflate the fragment to be returned
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.fragment_crime_list,container,false);
-
-
 
         mCrimeRecylerView = (RecyclerView) view.findViewById(R.id.crime_recycler_view);
         mCrimeRecylerView.setLayoutManager(new LinearLayoutManager(getActivity()));
@@ -44,14 +47,29 @@ public class CrimeListFragment extends Fragment {
         return view;
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        updateUI();
+    }
+
     private void updateUI () {
         CrimeLab crimeLab = CrimeLab.get(getActivity());
         List<Crime> crimes = crimeLab.getCrimes();
+        if (mAdapter == null ){
+            mAdapter = new CrimeAdapter(crimes);
+            mCrimeRecylerView.setAdapter(mAdapter);
+        } else {
+            if (lastClickedRow >=0){
+                mAdapter.notifyItemChanged(lastClickedRow);
+                lastClickedRow = -1;
+            } else
+                mAdapter.notifyDataSetChanged();
 
-        mAdapter = new CrimeAdapter(crimes);
-        mCrimeRecylerView.setAdapter(mAdapter);
+        }
+
     }
-
+//view holder - gets references to actual view and sets listeners.
     private class CrimeHolder extends ViewHolder implements View.OnClickListener{
 
         // variables for data binding
@@ -77,10 +95,18 @@ public class CrimeListFragment extends Fragment {
         //  click listener when user touches a row
         @Override
         public void onClick(View view) {
-            Toast.makeText(getActivity(),
-                    mCrime.getTitle() + " clicked!",
-                    Toast.LENGTH_SHORT).show();
+            Intent intent = CrimeActivity.newIntent(getActivity(),mCrime.getId());
+            // store the row clicked
+            lastClickedRow = getAdapterPosition();
+
+            // start the activity and expect a result
+
+
+            startActivity(intent);
+
         }
+
+
 
         // binding a crime item each time it is needed for the UI
         public void bind(Crime crime) {
@@ -151,8 +177,6 @@ public class CrimeListFragment extends Fragment {
         @Override
         public CrimeHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             Log.d("onCreateViewHolder",Integer.toString(viewType));
-
-
 
            LayoutInflater layoutInflater = LayoutInflater.from(getActivity());
             return new CrimeHolder(layoutInflater,parent);
