@@ -92,19 +92,7 @@ public class CrimeListFragment extends Fragment {
 
 
 
-        //  click listener when user touches a row
-        @Override
-        public void onClick(View view) {
-            Intent intent = CrimeActivity.newIntent(getActivity(),mCrime.getId());
-            // store the row clicked
-            lastClickedRow = getAdapterPosition();
 
-            // start the activity and expect a result
-
-
-            startActivity(intent);
-
-        }
 
 
 
