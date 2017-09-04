@@ -6,6 +6,8 @@
     <string name="crime_solved_label">Solved</string>
     <string name="contact_police_label">Contact Police</string>
 
+    <string name="crimelist_first_button">First Crime</string>
+    <string name="crimelist_last_button">Last Crime</string>
 
 
 </resources>
