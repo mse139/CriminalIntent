@@ -69,7 +69,7 @@ public class CrimeListFragment extends Fragment {
         }
 
     }
-    //view holder - gets references to actual view and sets listeners.
+//view holder - gets references to actual view and sets listeners.
     private class CrimeHolder extends ViewHolder implements View.OnClickListener{
 
         // variables for data binding
@@ -179,7 +179,7 @@ public class CrimeListFragment extends Fragment {
         public CrimeHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             Log.d("onCreateViewHolder",Integer.toString(viewType));
 
-            LayoutInflater layoutInflater = LayoutInflater.from(getActivity());
+           LayoutInflater layoutInflater = LayoutInflater.from(getActivity());
             return new CrimeHolder(layoutInflater,parent);
         }
 
