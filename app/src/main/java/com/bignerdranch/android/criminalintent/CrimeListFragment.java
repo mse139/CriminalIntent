@@ -95,7 +95,7 @@ public class CrimeListFragment extends Fragment {
         //  click listener when user touches a row
         @Override
         public void onClick(View view) {
-            // create a new pager intent
+            // create a new pager inten
             Intent intent = CrimePagerActivity.newItent(getActivity(),mCrime.getId());
             // store the row clicked
             lastClickedRow = getAdapterPosition();
