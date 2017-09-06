@@ -1,12 +1,12 @@
 package com.bignerdranch.android.criminalintent;
 
 import android.app.Activity;
+
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -70,7 +70,7 @@ public class CrimeListFragment extends Fragment {
 
     }
 //view holder - gets references to actual view and sets listeners.
-    private class CrimeHolder extends ViewHolder implements View.OnClickListener{
+    private class CrimeHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
 
         // variables for data binding
         private TextView mTitleTextView;
@@ -118,7 +118,7 @@ public class CrimeListFragment extends Fragment {
         }
     }
 
-    private class CrimeHolderPolice extends ViewHolder implements View.OnClickListener {
+    private class CrimeHolderPolice extends RecyclerView.ViewHolder implements View.OnClickListener {
 
         // variables for data binding
 
