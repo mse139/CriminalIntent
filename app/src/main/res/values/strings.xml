@@ -9,5 +9,8 @@
     <string name="crimelist_first_button">First Crime</string>
     <string name="crimelist_last_button">Last Crime</string>
 
+    <!-- dialog title strings -->
+    <string name="date_picker_title">Date of crime:</string>
+
 
 </resources>
