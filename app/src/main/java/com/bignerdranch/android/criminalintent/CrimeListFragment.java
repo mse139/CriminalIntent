@@ -5,11 +5,15 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -29,9 +33,24 @@ public class CrimeListFragment extends Fragment {
     private final int ITEM_CRIME_POLICE = 0;
     private final int ITEM_CRIME =1;
     private final String TAG = "CrimeListFragment";
+    private final String SAVED_SUBTITLE_VISIBLE = "subtitle";
     private static final int REQUEST_CRIME = 1;
     private int lastClickedRow = -1;
+    private boolean mSubtitleVisible;
 
+
+    // oncreate override to specify the menu listener
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        // restore the subtitle state across instance changes
+
+        if(savedInstanceState != null) {
+            mSubtitleVisible = savedInstanceState.getBoolean(SAVED_SUBTITLE_VISIBLE);
+        }
+        setHasOptionsMenu(true);
+    }
     @Override
     //create and inflate the fragment to be returned
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -50,7 +69,65 @@ public class CrimeListFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+
         updateUI();
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putBoolean(SAVED_SUBTITLE_VISIBLE,mSubtitleVisible);
+    }
+
+    // menu overrides
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater){
+        super.onCreateOptionsMenu(menu,inflater);
+        inflater.inflate(R.menu.fragment_crime_list,menu);
+        MenuItem subtitleItem = menu.findItem(R.id.show_subtitle);
+
+        if(mSubtitleVisible){
+            subtitleItem.setTitle(R.string.hide_subtitle);
+        } else
+            subtitleItem.setTitle(R.string.show_subtitle);
+
+
+    }
+
+    // options selected override
+    @Override
+    public  boolean onOptionsItemSelected(MenuItem item) {
+        switch(item.getItemId()) {
+            case R.id.new_crime:
+                Crime crime = new Crime();
+                CrimeLab.get(getActivity()).addCrime(crime);
+                Intent intent = CrimePagerActivity
+                        .newItent(getActivity(),crime.getId());
+                startActivity(intent);
+                return true;
+            case R.id.show_subtitle:
+                mSubtitleVisible = !mSubtitleVisible;   // flip the flag
+                getActivity().invalidateOptionsMenu();
+                updateSubtitle();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+
+        }
+    }
+
+    public void updateSubtitle() {
+        CrimeLab crimeLab = CrimeLab.get(getActivity());
+        int crimeCount = crimeLab.getCrimes().size();
+        String subtitle = getString(R.string.subtitle_format,crimeCount);
+
+        if(!mSubtitleVisible)
+            subtitle = null;
+
+        // get the reference to the action bar and set the title
+        AppCompatActivity activity = (AppCompatActivity) getActivity();
+        activity.getSupportActionBar().setSubtitle(subtitle);
+
     }
 
     private void updateUI () {
@@ -67,6 +144,7 @@ public class CrimeListFragment extends Fragment {
                 mAdapter.notifyDataSetChanged();
 
         }
+        updateSubtitle();
 
     }
 //view holder - gets references to actual view and sets listeners.
