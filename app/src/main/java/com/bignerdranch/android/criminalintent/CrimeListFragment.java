@@ -137,7 +137,7 @@ public class CrimeListFragment extends Fragment {
             mAdapter = new CrimeAdapter(crimes);
             mCrimeRecylerView.setAdapter(mAdapter);
         } else {
-            mAdapter.setCrimes(crimes);
+            mAdapter.setCrimes(crimes); // refresh the crime list from db
             if (lastClickedRow >=0){
                 mAdapter.notifyItemChanged(lastClickedRow);
                 lastClickedRow = -1;
