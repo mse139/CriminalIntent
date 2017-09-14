@@ -137,6 +137,16 @@ public class CrimeFragment extends Fragment {
         return v;
     }
 
+    //onPause override
+    @Override
+    public void onPause() {
+        super.onPause();
+
+        // update the crime in the db
+        CrimeLab.get(getActivity()).updateCrime(mCrime);
+
+    }
+
     // get the menu
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater){

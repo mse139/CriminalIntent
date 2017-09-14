@@ -137,6 +137,7 @@ public class CrimeListFragment extends Fragment {
             mAdapter = new CrimeAdapter(crimes);
             mCrimeRecylerView.setAdapter(mAdapter);
         } else {
+            mAdapter.setCrimes(crimes);
             if (lastClickedRow >=0){
                 mAdapter.notifyItemChanged(lastClickedRow);
                 lastClickedRow = -1;
@@ -189,6 +190,9 @@ public class CrimeListFragment extends Fragment {
 
         // binding a crime item each time it is needed for the UI
         public void bind(Crime crime) {
+            if(crime == null )
+                return;
+
             mCrime = crime;
             mTitleTextView.setText(mCrime.getTitle());
             mDateTextView.setText(DateFormat.format("EEEE, MMMM dd, yyyy",mCrime.getDate()));
@@ -246,11 +250,17 @@ public class CrimeListFragment extends Fragment {
 
             // check if police flag is true to determine
             // which layout to send
+            /*
             if(mCrimes.get(position).isRequiresPolice()){
                 // display the police button layout
                 return ITEM_CRIME_POLICE;
             } else
+            */
                 return ITEM_CRIME;
+        }
+
+        public void setCrimes(List<Crime> crimes) {
+            mCrimes = crimes;
         }
 
         @Override
