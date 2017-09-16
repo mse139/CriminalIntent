@@ -10,6 +10,7 @@ import java.util.UUID;
 public class Crime {
     private UUID mId;
     private String mTitle;
+    private String mSuspect;
     private Date mDate;
     private boolean mSolved;
     private boolean mRequiresPolice;
@@ -53,6 +54,15 @@ public class Crime {
 
     public boolean isRequiresPolice() {
         return mRequiresPolice;
+    }
+
+
+    public String getSuspect() {
+        return mSuspect;
+    }
+
+    public void setSuspect(String suspect) {
+        mSuspect = suspect;
     }
 
     public void setRequiresPolice(boolean requiresPolice) {

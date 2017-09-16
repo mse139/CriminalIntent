@@ -2,10 +2,17 @@ package com.bignerdranch.android.criminalintent;
 
 
 import android.app.Activity;
+import android.content.ContentResolver;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.ContactsContract;
+import android.provider.Telephony;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.ShareCompat;
 import android.support.v4.view.ViewGroupCompat;
 import android.text.Editable;
 import android.text.Layout;
@@ -41,12 +48,18 @@ public class CrimeFragment extends Fragment {
     private Button mTimeButton;
     private CheckBox mSolvedCheckBox;
     private static final String ARG_CRIME_ID = "crime_id";
+    private static final String ARG_CONTACT_ID = "contact_id";
     private static final String DIALOG_DATE = "DialogDate";
     private static final String DIALOG_TIME = "DialogTime";
+    private static final int REQUEST_CONTACT = 2;
     private static final int REQUEST_DATE = 0;
     private static final int REQUEST_TIME  = 1;
     private static final String TAG = "CrimeFragment";
     private static  SimpleDateFormat mTimeFormat;
+    private Button mReportButton;
+    private Button mSuspectButton;
+    private Button mCallButton;
+    private String mContactID;
 
     // oncreate bundle override
     @Override
@@ -55,6 +68,7 @@ public class CrimeFragment extends Fragment {
         setHasOptionsMenu(true);
         // retrieve the crimeID from the extra data
         UUID crimeId = (UUID) getArguments().getSerializable(ARG_CRIME_ID);
+        String contactID = getArguments().getString(ARG_CONTACT_ID);
         mCrime = CrimeLab.get(getActivity()).getCrime(crimeId);
     }
 
@@ -67,9 +81,14 @@ public class CrimeFragment extends Fragment {
 
         View v = inflater.inflate(R.layout.fragment_crime,container,false);
         v.setPadding(16,16,16,16);
+
+        final Intent pickContact = new Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI);
+        final Intent callContact = new Intent(Intent.ACTION_DIAL);
+
         // init the titleField and add listener
         mTitleField = (EditText) v.findViewById(R.id.crime_title);
         mTitleField.setText(mCrime.getTitle());
+
         mTitleField.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
@@ -91,9 +110,6 @@ public class CrimeFragment extends Fragment {
         // init the date button
         mDateButton = (Button) v.findViewById(R.id.crime_date);
         updateDate();
-
-
-
 
         // set the date button listener
         mDateButton.setOnClickListener(new View.OnClickListener() {
@@ -132,7 +148,63 @@ public class CrimeFragment extends Fragment {
             }
         });
 
+        // init and set listener on crime report button
+        mReportButton = (Button) v.findViewById(R.id.crime_report);
+        mReportButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // create the intent to send the report using the builder
+                ShareCompat.IntentBuilder builder = ShareCompat.IntentBuilder.from(getActivity());
 
+                builder.setText(getCrimeReport()).setType("text/plain")
+                        .setSubject(getString(R.string.send_report))
+                .createChooserIntent();
+
+                startActivity(builder.getIntent());
+            }
+        });
+
+        // init and set listener on contact button
+        mSuspectButton = (Button) v.findViewById(R.id.crime_suspect);
+
+        // check to see if there is a contacts app and disable button if there isn't
+        PackageManager packageManager = getActivity().getPackageManager();
+        if (packageManager.resolveActivity(pickContact,PackageManager.MATCH_DEFAULT_ONLY) == null){
+            mCallButton.setEnabled(false);
+            mSuspectButton.setEnabled(false);
+        }
+
+        mSuspectButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivityForResult(pickContact,REQUEST_CONTACT);
+            }
+        });
+
+        if (mCrime.getSuspect() != null) {
+            mSuspectButton.setText(mCrime.getSuspect());
+        }
+
+        // setup the call button
+        mCallButton = (Button)v.findViewById(R.id.crime_call_suspect);
+        if(packageManager.resolveActivity(callContact,PackageManager.MATCH_DEFAULT_ONLY) == null){
+            mCallButton.setEnabled(false);
+        }
+
+        mCallButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(mContactID == null)
+                    mContactID  = searchContacts();
+                // get the phone number and set the dialer
+                Uri number = Uri.parse("tel:"+getPhoneNumber());
+               callContact.setData(number);
+
+                startActivity(callContact);
+
+
+            }
+        });
 
         return v;
     }
@@ -202,6 +274,35 @@ public class CrimeFragment extends Fragment {
            setTime();
 
         }
+        // getting a contact
+        if(requestCode == REQUEST_CONTACT && data != null) {
+            Uri contactUri = data.getData();
+            // specify fields we want returned
+            String[] queryFields = new String[] {ContactsContract.Contacts.DISPLAY_NAME,
+                    ContactsContract.Contacts._ID, ContactsContract.Contacts.LOOKUP_KEY,
+                    ContactsContract.Contacts.HAS_PHONE_NUMBER,};
+
+            // perform the query
+            Cursor c = getActivity().getContentResolver().query(contactUri,queryFields,null,null,null);
+
+            try {
+                // double check to see if we got results
+                if(c.getCount() == 0) {
+                    return;
+
+                }
+
+                // pull out the first column of the first row
+                c.moveToFirst();
+                String suspect = c.getString(0);
+                mContactID = c.getString(2);
+                mCrime.setSuspect(suspect);
+                mSuspectButton.setText(suspect);
+            } finally {
+                c.close();
+
+            }
+        }
     }
 
     private void updateDate() {
@@ -226,5 +327,92 @@ public class CrimeFragment extends Fragment {
 
     public void returnResult() {
         getActivity().setResult(Activity.RESULT_OK,null);
+    }
+
+    // creates crime report
+    private String getCrimeReport() {
+        String solvedString = null;
+        if(mCrime.isSolved()) {
+            solvedString = getString(R.string.crime_report_solved);
+        } else {
+            solvedString = getString(R.string.crime_report_unsolved);
+        }
+
+        String dateFormat = "EEE, MMM dd";
+        String dateString = DateFormat.format(dateFormat,mCrime.getDate()).toString();
+
+        String suspect = mCrime.getSuspect();
+
+        if(suspect == null ) {
+            suspect = getString(R.string.crime_report_no_suspect);
+        } else {
+            suspect = getString(R.string.crime_report_suspect);
+        }
+
+        String report = getString(R.string.crime_report,mCrime.getTitle(),dateString,solvedString,suspect);
+
+        return report;
+    }
+
+    private String getPhoneNumber() {
+        String result = new String();
+        // query the phone data to get phone number
+        String queryFields[] = {ContactsContract.CommonDataKinds.Phone.NUMBER};
+        String whereClause = ContactsContract.CommonDataKinds.Phone.LOOKUP_KEY + "=?";
+        String whereArgs[] = {mContactID};
+        ContentResolver cr = getActivity().getContentResolver();
+
+        // run the query
+        Cursor c = cr.query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                queryFields, whereClause,whereArgs,null,null);
+
+        // process the results
+        try {
+            if (c.getCount() == 0)
+                return null;
+
+            c.moveToFirst();
+            result = c.getString(0);
+            Log.d(TAG,"getPhone got phone: " + result);
+
+        } finally {
+            c.close();
+        }
+
+
+
+        return result;
+    }
+
+    private String searchContacts() {
+        String id = new String();
+
+        // search the contacts by name
+        String[] queryFields = {ContactsContract.Contacts.LOOKUP_KEY};
+        String whereClause = ContactsContract.Contacts.DISPLAY_NAME + "=?";
+
+        String[] whereArgs = {mCrime.getSuspect()};
+
+        ContentResolver cr = getActivity().getContentResolver();
+        Cursor cursor = cr.query(ContactsContract.Contacts.CONTENT_URI,queryFields,whereClause,whereArgs,null);
+        // we will assume only 1 contact returned and only use the first result
+        try {
+            if(cursor.getCount() == 0)
+                return null;
+
+            cursor.moveToFirst();
+            id = cursor.getString(0);
+            Log.d(TAG,"serach result id is " + id);
+        } finally {
+            cursor.close();
+        }
+
+        return id;
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle savedInstance) {
+        super.onSaveInstanceState(savedInstance);
+        savedInstance.putSerializable(ARG_CONTACT_ID,mContactID);
     }
 }
