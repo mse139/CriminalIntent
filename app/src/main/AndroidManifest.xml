@@ -20,7 +20,26 @@
             >
 
         </activity>
+
+        <uses-permission android:name="android.permission.READ_CONTACTS"/>
+
+        <provider
+            android:authorities="com.bignerdranch.android.criminalintent.fileprovider"
+            android:name="android.support.v4.content.FileProvider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/files"/>
+
+
+
+    </provider>
+
+        <uses-feature android:name="android.hardware.camera"
+                      android:required="false"/>
+
     </application>
 
-<uses-permission android:name="android.permission.READ_CONTACTS"/>
+
 </manifest>
