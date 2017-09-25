@@ -107,7 +107,8 @@ public  class CrimeLab {
     }
 
     public void removeCrime(Crime c) {
-
+            mDatabase.delete(CrimeTable.NAME,CrimeTable.Cols.UUID + "=?",
+                        new String[] {c.getId().toString()});
     }
 
     // build contentvalue obj from a crime for the db
