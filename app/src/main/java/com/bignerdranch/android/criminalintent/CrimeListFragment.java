@@ -2,12 +2,14 @@ package com.bignerdranch.android.criminalintent;
 
 import android.app.Activity;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -21,6 +23,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.List;
+
+import static android.support.v7.widget.helper.ItemTouchHelper.*;
 
 /**
  * Created by mike on 8/21/17.
@@ -37,6 +41,30 @@ public class CrimeListFragment extends Fragment {
     private static final int REQUEST_CRIME = 1;
     private int lastClickedRow = -1;
     private boolean mSubtitleVisible;
+
+    private Callbacks mCallbacks;
+
+    /**
+     * *Required interface for hosting activities
+     *
+     */
+    public interface Callbacks {
+        void onCrimeSelected(Crime crime);
+        void onCrimeRemoved(Crime crime);
+
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        mCallbacks = (Callbacks) context;
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        mCallbacks = null;
+    }
 
 
     // oncreate override to specify the menu listener
@@ -60,6 +88,25 @@ public class CrimeListFragment extends Fragment {
 
         mCrimeRecylerView = (RecyclerView) view.findViewById(R.id.crime_recycler_view);
         mCrimeRecylerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(
+                               new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
+                   @Override
+                   public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder,
+                                         RecyclerView.ViewHolder target) {
+                                              return false;
+                                           }
+                    @Override
+                   public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
+                                               int position = viewHolder.getAdapterPosition();
+                                                Crime crime = mAdapter.mCrimes.get(position);
+                                                CrimeLab.get(getActivity()).removeCrime(crime);
+                                                mCallbacks.onCrimeRemoved(crime);
+
+                                            }
+                });
+
+        itemTouchHelper.attachToRecyclerView(mCrimeRecylerView);
 
         updateUI();
 
@@ -101,14 +148,25 @@ public class CrimeListFragment extends Fragment {
             case R.id.new_crime:
                 Crime crime = new Crime();
                 CrimeLab.get(getActivity()).addCrime(crime);
-                Intent intent = CrimePagerActivity
-                        .newItent(getActivity(),crime.getId());
-                startActivity(intent);
+                updateUI();
+                //call the correct fragment
+                mCallbacks.onCrimeSelected(crime);
                 return true;
             case R.id.show_subtitle:
                 mSubtitleVisible = !mSubtitleVisible;   // flip the flag
                 getActivity().invalidateOptionsMenu();
                 updateSubtitle();
+                return true;
+            case R.id.delete_crime:
+               
+                if(lastClickedRow >=0) {
+                    Crime deletedCrime =
+                    mAdapter.mCrimes.get(lastClickedRow);
+                    CrimeLab.get(getActivity()).removeCrime(deletedCrime);
+
+                    mCallbacks.onCrimeRemoved(deletedCrime);
+                    updateUI();
+                }
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -130,7 +188,7 @@ public class CrimeListFragment extends Fragment {
 
     }
 
-    private void updateUI () {
+    public void updateUI () {
         CrimeLab crimeLab = CrimeLab.get(getActivity());
         List<Crime> crimes = crimeLab.getCrimes();
         if (mAdapter == null ){
@@ -149,7 +207,8 @@ public class CrimeListFragment extends Fragment {
 
     }
 //view holder - gets references to actual view and sets listeners.
-    private class CrimeHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
+    private class CrimeHolder extends RecyclerView.ViewHolder implements View.OnClickListener
+           {
 
         // variables for data binding
         private TextView mTitleTextView;
@@ -175,16 +234,15 @@ public class CrimeListFragment extends Fragment {
         @Override
         public void onClick(View view) {
             // create a new pager inten
-            Intent intent = CrimePagerActivity.newItent(getActivity(),mCrime.getId());
+           // Intent intent = CrimePagerActivity.newItent(getActivity(),mCrime.getId());
             // store the row clicked
             lastClickedRow = getAdapterPosition();
+            mCallbacks.onCrimeSelected(mCrime);
 
-            // start the activity and expect a result
-
-
-            startActivity(intent);
 
         }
+
+
 
 
 

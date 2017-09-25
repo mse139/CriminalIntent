@@ -3,6 +3,7 @@ package com.bignerdranch.android.criminalintent;
 
 import android.app.Activity;
 import android.content.ContentResolver;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
@@ -75,7 +76,13 @@ public class CrimeFragment extends Fragment {
     private ImageView mPhotoView;
 
     private File mPhotoFile;
+    private CallBacks mCallBacks;
 
+
+    public interface CallBacks {
+        void onCrimeUpdated(Crime crime);
+
+    }
 
 
     // oncreate bundle override
@@ -127,6 +134,7 @@ public class CrimeFragment extends Fragment {
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
 
                 mCrime.setTitle(charSequence.toString());
+                updateCrime();
             }
 
             @Override
@@ -173,6 +181,7 @@ public class CrimeFragment extends Fragment {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
                 mCrime.setSolved(b);
+                updateCrime();
             }
         });
 
@@ -399,6 +408,8 @@ public class CrimeFragment extends Fragment {
             updatePhotoView();
         }
 
+        updateCrime();
+
     }
 
     private void updateDate() {
@@ -419,6 +430,17 @@ public class CrimeFragment extends Fragment {
         fragment.setArguments(args);
         // return the new fragment
         return fragment;
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        mCallBacks = (CallBacks) context;
+    }
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        mCallBacks = null;
     }
 
     public void returnResult() {
@@ -519,5 +541,10 @@ public class CrimeFragment extends Fragment {
             Bitmap bitmap = PicturesUtils.getScaledBitmap(mPhotoFile.getPath(),getActivity());
             mPhotoView.setImageBitmap(bitmap);
         }
+    }
+
+    private void updateCrime() {
+        CrimeLab.get(getActivity()).updateCrime(mCrime);
+        mCallBacks.onCrimeUpdated(mCrime);
     }
 }

@@ -18,13 +18,20 @@ import java.util.UUID;
  * Created by mike on 9/2/17.
  */
 
-public class CrimePagerActivity extends AppCompatActivity  {
+public class CrimePagerActivity extends AppCompatActivity implements CrimeFragment.CallBacks {
 
     private ViewPager mViewPager;
     private List<Crime> mCrimes;
     private Button mFirstCrimeBtn;
     private Button mLastCrimeBtn;
     private static final String EXTRA_CRIME_ID = "com.bignerdranch.android.criminalintent.crime_id";
+
+
+    @Override
+    public void onCrimeUpdated(Crime crime) {
+
+    }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
