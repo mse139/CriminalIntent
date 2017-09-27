@@ -10,7 +10,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
-import android.text.format.DateFormat;
+
+import java.text.DateFormat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -210,6 +211,8 @@ public class CrimeListFragment extends Fragment {
     private class CrimeHolder extends RecyclerView.ViewHolder implements View.OnClickListener
            {
 
+
+              DateFormat df = DateFormat.getDateInstance();
         // variables for data binding
         private TextView mTitleTextView;
         private TextView mDateTextView;
@@ -253,7 +256,8 @@ public class CrimeListFragment extends Fragment {
 
             mCrime = crime;
             mTitleTextView.setText(mCrime.getTitle());
-            mDateTextView.setText(DateFormat.format("EEEE, MMMM dd, yyyy",mCrime.getDate()));
+            mDateTextView.setText(df.format(mCrime.getDate()));
+           // mDateTextView.setText(DateFormat.format("EEEE, MMMM dd, yyyy",mCrime.getDate()));
             mSolvedImageView.setVisibility(mCrime.isSolved() ? View.VISIBLE: View.GONE);
         }
     }

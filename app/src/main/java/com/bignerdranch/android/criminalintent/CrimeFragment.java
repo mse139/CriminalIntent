@@ -75,6 +75,9 @@ public class CrimeFragment extends Fragment {
     private ImageButton mPhotoButton;
     private ImageView mPhotoView;
 
+
+    private java.text.DateFormat df = java.text.DateFormat.getDateInstance();
+
     private File mPhotoFile;
     private CallBacks mCallBacks;
 
@@ -413,7 +416,8 @@ public class CrimeFragment extends Fragment {
     }
 
     private void updateDate() {
-        mDateButton.setText(mCrime.getDate().toString());
+       // mDateButton.setText(mCrime.getDate().toString());
+        mDateButton.setText(df.format(mCrime.getDate()));
     }
 
     private String getTime() {
