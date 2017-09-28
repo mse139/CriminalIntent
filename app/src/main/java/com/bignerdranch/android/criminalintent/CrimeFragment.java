@@ -75,6 +75,8 @@ public class CrimeFragment extends Fragment {
     private ImageButton mPhotoButton;
     private ImageView mPhotoView;
 
+    private final int ANNOUNCE_DELAY = 1000;
+
 
     private java.text.DateFormat df = java.text.DateFormat.getDateInstance();
 
@@ -272,6 +274,12 @@ public class CrimeFragment extends Fragment {
                 dialog.show(fm,DIALOG_TIME);
             }
         });
+        mPhotoView.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+
+            }
+        },ANNOUNCE_DELAY);
 
 
        // updatePhotoView();
@@ -539,12 +547,30 @@ public class CrimeFragment extends Fragment {
     }
 
     private void updatePhotoView() {
+
+        final String announce;
+
+
+
         if(mPhotoFile == null || !mPhotoFile.exists()){
             mPhotoView.setImageDrawable(null);
+            mPhotoView.setContentDescription(getString(R.string.crime_photo_no_image_description));
+            announce = getString(R.string.no_photo_announcement);
         } else {
             Bitmap bitmap = PicturesUtils.getScaledBitmap(mPhotoFile.getPath(),getActivity());
             mPhotoView.setImageBitmap(bitmap);
+            mPhotoView.setContentDescription(getString(R.string.crime_photo_image_description));
+            announce = getString(R.string.photo_announcement);
+
         }
+
+        mPhotoView.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                mPhotoView.announceForAccessibility(announce);
+            }
+        },ANNOUNCE_DELAY);
+
     }
 
     private void updateCrime() {

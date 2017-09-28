@@ -241,7 +241,12 @@ public class CrimeListFragment extends Fragment {
             // store the row clicked
             lastClickedRow = getAdapterPosition();
             mCallbacks.onCrimeSelected(mCrime);
+            String solved = (mCrime.isSolved()) ? "solved" : "unsolved";
+            view.setContentDescription(getString(R.string.crime_summary_text,
+                    mCrime.getTitle(),mCrime.getDate(),solved
+            ));
 
+           Log.d(TAG,view.getContentDescription().toString());
 
         }
 
@@ -259,6 +264,8 @@ public class CrimeListFragment extends Fragment {
             mDateTextView.setText(df.format(mCrime.getDate()));
            // mDateTextView.setText(DateFormat.format("EEEE, MMMM dd, yyyy",mCrime.getDate()));
             mSolvedImageView.setVisibility(mCrime.isSolved() ? View.VISIBLE: View.GONE);
+
+
         }
     }
 
@@ -338,7 +345,11 @@ public class CrimeListFragment extends Fragment {
 
             // bind the newest record
             Crime crime=  mCrimes.get(position);// get the record
+
             holder.bind(crime);     // bind it
+
+
+
         }
 
         @Override
